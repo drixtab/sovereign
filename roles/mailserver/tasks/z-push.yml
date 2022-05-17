@@ -2,15 +2,15 @@
   apt: pkg={{ item }} state=present
   with_items:
     - php-soap
-    - php5
-    - php5-cli
-    - php5-imap
+    - php
+    - php-cli
+    - php-imap
   tags:
     - dependencies
 
 - name: Download z-push release
   get_url:
-    url=http://download.z-push.org/final/2.1/z-push-{{ zpush_version }}.tar.gz
+    url=http://download.z-push.org/final/2.3/z-push-{{ zpush_version }}.tar.gz
     dest=/root/z-push-{{ zpush_version }}.tar.gz
 
 - name: Decompress z-push source

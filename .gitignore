@@ -5,3 +5,6 @@
 *.pyc
 *.retry
 secret
+hosts.yml
+roles/tarsnap/files/decrypted_tarsnap.key
+.vault_pass

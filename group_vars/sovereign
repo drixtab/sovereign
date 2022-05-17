@@ -4,9 +4,9 @@
 ################################################################################
 
 # common
-domain: (required)
-main_user_name: (required)
-organization: (required)
+domain: tabligan.net
+main_user_name: drix
+organization: Tabligan Family Server
 
 # admin email
 # fail2ban reports will be sent to this address
@@ -16,10 +16,22 @@ admin_email: "{{ main_user_name }}@{{ domain }}"
 mail_virtual_domains:
   - name: "{{ domain }}"
     pk_id: 1
+  - name: mainstnetworks.com
+    pk_id: 2
+  - name: scintillajuris.org
+    pk_id: 3
+  - name: scintillajuris.net
+    pk_id: 4
 mail_virtual_users:
   - account: "{{ main_user_name }}"
     domain: "{{ domain }}"
-    password: TODO
+    password: !vault |
+      $ANSIBLE_VAULT;1.1;AES256
+      61646431376430353433393131363766313462343333353635393630393939353234393536303037
+      3330383232626231366530636134313836303463343538630a363136663831336164333266653730
+      65613965306337343163306464353032346235386162633765323963343538626331636165613534
+      6334653762663765390a346538636362333034366339326432316331656230623030613661646234
+      3936
     domain_pk_id: 1
 mail_virtual_aliases:
   - source: "root@{{ domain }}"
@@ -44,17 +56,30 @@ irc_nick: (required)
 irc_ident: (required)
 irc_realname: (required)
 irc_quitmsg: (required)
-irc_password: TODO
+irc_password: !vault |
+  $ANSIBLE_VAULT;1.1;AES256
+  61646431376430353433393131363766313462343333353635393630393939353234393536303037
+  3330383232626231366530636134313836303463343538630a363136663831336164333266653730
+  65613965306337343163306464353032346235386162633765323963343538626331636165613534
+  6334653762663765390a346538636362333034366339326432316331656230623030613661646234
+  3936
 
 # xmpp
 prosody_admin: "{{ admin_email }}"
 prosody_virtual_domain: "{{ domain }}"
 prosody_accounts:
   - name: "{{ main_user_name }}"
-    password: TODO
+    password: !vault |
+      $ANSIBLE_VAULT;1.1;AES256
+      61646431376430353433393131363766313462343333353635393630393939353234393536303037
+      3330383232626231366530636134313836303463343538630a363136663831336164333266653730
+      65613965306337343163306464353032346235386162633765323963343538626331636165613534
+      6334653762663765390a346538636362333034366339326432316331656230623030613661646234
+      3936
 
 # openvpn
 openvpn_clients:
   - laptop
   - phone
   - tablet
+  - firewall

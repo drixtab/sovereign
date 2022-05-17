@@ -29,6 +29,7 @@
 - name: Ensure mail directories are in place
   file: state=directory path=/decrypted/{{ item.domain }}/{{ item.account }} owner=vmail group=dovecot
   with_items: '{{ mail_virtual_users }}'
+  no_log: True
 
 - name: Copy dovecot.conf into place
   copy: src=etc_dovecot_dovecot.conf dest=/etc/dovecot/dovecot.conf

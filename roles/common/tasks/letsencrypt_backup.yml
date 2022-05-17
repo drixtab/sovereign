@@ -3,12 +3,14 @@
     name: ssl-cert
     state: present
 
-- name: Ensure certbot is installed
-  package:
-    name: 
-      - certbot
-      - python3-certbot-apache
-    state: present
+- name: Download LetsEncrypt release
+  git: repo=https://github.com/letsencrypt/letsencrypt
+       dest=/root/letsencrypt
+       version=master
+       force=yes
+
+- name: Create directory for LetsEncrypt configuration and certificates
+  file: state=directory path=/etc/letsencrypt group=root owner=root
 
 - name: Configure LetsEncrypt
   template:
@@ -16,6 +18,11 @@
     dest=/etc/letsencrypt/cli.conf
     owner=root
     group=root
+
+# - name: Install LetsEncrypt package dependencies
+#   command: /root/letsencrypt/letsencrypt-auto-source/letsencrypt-auto --help
+#   register: le_deps_result
+#   changed_when: "'Bootstrapping dependencies' in le_deps_result.stdout"
 
 - name: Create directory for pre-renewal scripts
   file: state=directory path=/etc/letsencrypt/prerenew group=root owner=root
@@ -25,7 +32,7 @@
 
 - name: Create pre-renew hook to stop apache
   copy:
-    content: "#!/bin/bash\n\nsystemctl stop apache2\n"
+    content: "#!/bin/bash\n\nservice apache2 stop\n"
     dest: /etc/letsencrypt/prerenew/apache
     owner: root
     group: root
@@ -33,31 +40,26 @@
 
 - name: Create post-renew hook to start apache
   copy:
-    content: "#!/bin/bash\n\nsystemctl start apache2\n"
+    content: "#!/bin/bash\n\nservice apache2 start\n"
     dest: /etc/letsencrypt/postrenew/apache
     owner: root
     group: root
     mode: 0755
 
-# - name: Install crontab entry for LetsEncrypt
-#   copy:
-#     src: etc_cron-daily_letsencrypt-renew
-#     dest: /etc/cron.daily/letsencrypt-renew
-#     owner: root
-#     group: root
-#     mode: 0755
+- name: Install crontab entry for LetsEncrypt
+  copy:
+    src: etc_cron-daily_letsencrypt-renew
+    dest: /etc/cron.daily/letsencrypt-renew
+    owner: root
+    group: root
+    mode: 0755
 
 - name: Create live directory for LetsEncrypt cron job
   file: state=directory path=/etc/letsencrypt/live group=root owner=root
 
-- name: Check if certificate already exists.
-  stat:
-    path: /etc/letsencrypt/live/{{ domain }}/cert.pem
-  register: letsencrypt_cert
-
-- name: Generate new cert if it doesn't exist
-  command: "/usr/bin/certbot certonly --standalone --noninteractive --agree-tos --email {{ admin_email }} -d {{ mail_virtual_domains | map(attribute='name') | join(',') }} --pre-hook /etc/letsencrypt/prerenew/apache --post-hook /etc/letsencrypt/postrenew/apache"
-  when: not letsencrypt_cert.stat.exists
+- name: Get an SSL certificate for {{ domain }} from Let's Encrypt
+  script: letsencrypt-gencert {{ domain }} creates=/etc/letsencrypt/live/{{ domain }}/privkey.pem
+  when: ansible_ssh_user != "vagrant"
 
 - name: Modify permissions to allow ssl-cert group access
   file: path=/etc/letsencrypt/archive owner=root group=ssl-cert mode=0750
